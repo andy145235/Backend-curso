@@ -1,0 +1,26 @@
+springdoc:
+  api-docs:
+    path: /api-docs   # Ruta donde se expone la especificación OpenAPI en JSON
+  swagger-ui:
+    path: /swagger-ui.html   # Ruta de la interfaz Swagger UI
+    operationsSorter: method   # Ordena las operaciones por método (GET, POST, etc.)
+    tagsSorter: alpha          # Ordena los tags alfabéticamente
+    display-request-duration: true  # Muestra tiempo de respuesta
+    doc-expansion: none        # Contrae los endpoints por defecto
+    try-it-out-enabled: true   # Habilita "Try it out" por defecto
+  show-actuator: true          # Muestra endpoints del Actuator (si tienes spring-boot-starter-actuator)
+
+info:
+  title: Plataforma de Cursos API
+  description: |
+    API parza gestionar cursos en la plataforma.
+    Permite crear, listar, actualizar y eliminar cursos.
+  version: "2.3.0"
+  terms-of-service: http://ucb.edu.bo/terminos
+  contact:
+    name: Soporte Plataforma Cursos
+    email: soporte@ucb.edu.bo
+    url: http://ucb.edu.bo
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0

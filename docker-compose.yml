@@ -1,0 +1,127 @@
+services:
+  # --- 1. CONFIG SERVER ---
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - learning-net
+    environment:
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/andy145235/micro-config-data.git
+      # AGREGA ESTA LÍNEA PARA OBLIGAR A USAR 'main':
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
+      - SPRING_SECURITY_USER_NAME=user
+      - SPRING_SECURITY_USER_PASSWORD=password123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+  # --- 2. KEYCLOAK (Sin Healthcheck) ---
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HTTP_PORT=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data/
+    networks:
+      - learning-net
+
+  # --- 3. EUREKA (Sin Healthcheck) ---
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://user:password123@config-server:8888/
+    networks:
+      - learning-net
+    depends_on:
+      - config-server
+
+  # --- 4. BASES DE DATOS ---
+  postgres_res:
+    image: postgres:16-alpine
+    container_name: postgres_res
+    environment:
+      POSTGRES_DB: lp_res_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: gatito71
+    volumes:
+      - pgdata_res:/var/lib/postgresql/data
+    networks:
+      - learning-net
+
+  postgres_cursos:
+    image: postgres:15
+    container_name: postgres_cursos
+    environment:
+      POSTGRES_DB: Curso-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - postgres_data_cursos:/var/lib/postgresql/data
+    networks:
+      - learning-net
+
+  # --- 5. MICROSERVICIOS ---
+  ms-res:
+    build: ./ms-res
+    container_name: ms-res
+    depends_on:
+      - config-server
+      - eureka-server
+      - postgres_res
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://user:password123@config-server:8888/
+    networks:
+      - learning-net
+
+  m-cursos:
+    build: ./m-cursos
+    container_name: m-cursos
+    depends_on:
+      - config-server
+      - eureka-server
+      - postgres_cursos
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://user:password123@config-server:8888/
+    networks:
+      - learning-net
+
+  # --- 6. GATEWAY ---
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "8090:8090"
+    depends_on:
+      config-server:
+        condition: service_started # <--- LA CLAVE: Espera a que esté VERDE
+      eureka-server:
+        condition: service_started
+      keycloak:
+        condition: service_started # Keycloak no necesita healthy estricto si usamos config manual
+    environment:
+      - SPRING_APPLICATION_NAME=gateway
+      # Credenciales para entrar al Config Server
+      - SPRING_CLOUD_CONFIG_USERNAME=user
+      - SPRING_CLOUD_CONFIG_PASSWORD=password123
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GATEWAY_CLIENT_CLIENT_SECRET=RH10YM4OoWUUb3kqtlpzZkRArWOCu18l
+    networks:
+      - learning-net
+
+volumes:
+  pgdata_res:
+  postgres_data_cursos:
+  keycloak_data:
+
+networks:
+  learning-net:
+    driver: bridge

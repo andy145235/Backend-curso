@@ -1,0 +1,7 @@
+spring:
+  application:
+    name:  eureka-server
+  config:
+    # Busca al config server en el puerto 8888 (localhost para pruebas locales, docker lo sobreescribe)
+    import: "optional:configserver:http://user:password123@localhost:8888/"
+

@@ -1,0 +1,12 @@
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/MsResApplication.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/config/OpenApiConfig.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/controller/ReviewController.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/dto/ReviewCreateRequest.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/dto/ReviewResponse.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/dto/ReviewUpdateRequest.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/entity/Review.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/exception/GlobalExceptionHandler.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/exception/NotFoundException.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/mapper/ReviewMapper.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/repository/ReviewRepository.java
+/Users/andy/Desktop/micro-curso/ms-res/src/main/java/com/ucb/plataforma/res/reviews/service/ReviewService.java

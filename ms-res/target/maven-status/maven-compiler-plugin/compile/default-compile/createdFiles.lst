@@ -1,0 +1,13 @@
+com/ucb/plataforma/res/reviews/repository/ReviewRepository.class
+com/ucb/plataforma/res/reviews/controller/ReviewController.class
+com/ucb/plataforma/res/reviews/dto/ReviewResponse.class
+com/ucb/plataforma/res/reviews/exception/NotFoundException.class
+com/ucb/plataforma/res/reviews/dto/ReviewUpdateRequest.class
+com/ucb/plataforma/res/reviews/mapper/ReviewMapper.class
+com/ucb/plataforma/res/MsResApplication.class
+com/ucb/plataforma/res/reviews/exception/GlobalExceptionHandler.class
+com/ucb/plataforma/res/reviews/service/ReviewService.class
+com/ucb/plataforma/res/reviews/dto/ReviewCreateRequest.class
+com/ucb/plataforma/res/reviews/config/OpenApiConfig.class
+com/ucb/plataforma/res/reviews/mapper/ReviewMapperImpl.class
+com/ucb/plataforma/res/reviews/entity/Review.class

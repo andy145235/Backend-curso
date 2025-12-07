@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    config:
+      uri: http://config-server:8888
+      fail-fast: true # Mantenemos esto para que si falla, reintente
+      retry:
+        initial-interval: 3000 # Espera 3 segundos entre intentos
+        max-interval: 5000
+        max-attempts: 20       # Intenta 20 veces (1 minuto aprox) antes de rendirse
