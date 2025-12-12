@@ -9,13 +9,12 @@ services:
       - learning-net
     environment:
       - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/andy145235/micro-config-data.git
-      # AGREGA ESTA LÍNEA PARA OBLIGAR A USAR 'main':
       - SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL=main
       - SPRING_SECURITY_USER_NAME=user
       - SPRING_SECURITY_USER_PASSWORD=password123
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-  # --- 2. KEYCLOAK (Sin Healthcheck) ---
+  # --- 2. KEYCLOAK ---
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.0
     container_name: keycloak
@@ -31,56 +30,64 @@ services:
     networks:
       - learning-net
 
-  # --- 3. EUREKA (Sin Healthcheck) ---
+  # --- 3. EUREKA ---
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
     ports:
       - "8761:8761"
     environment:
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://user:password123@config-server:8888/
+      # 🔹 Desactiva completamente el uso de Config Server para este servicio
+      - SPRING_CONFIG_IMPORT=
+
+      # 🔹 Configuración básica de Eureka
+      - SPRING_APPLICATION_NAME=eureka-server
+      - SERVER_PORT=8761
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+
+      # 🔹 IMPORTANTE: que NO intente registrarse a sí mismo
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - learning-net
     depends_on:
       - config-server
 
-  # --- 4. BASES DE DATOS ---
-  postgres_res:
-    image: postgres:16-alpine
-    container_name: postgres_res
-    environment:
-      POSTGRES_DB: lp_res_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: gatito71
-    volumes:
-      - pgdata_res:/var/lib/postgresql/data
-    networks:
-      - learning-net
 
+  # --- 4. ÚNICA BASE DE DATOS POSTGRES ---
   postgres_cursos:
     image: postgres:15
     container_name: postgres_cursos
     environment:
       POSTGRES_DB: Curso-db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_PASSWORD: 1234   # <-- tu contraseña
     volumes:
       - postgres_data_cursos:/var/lib/postgresql/data
     networks:
       - learning-net
+    # (Opcional) Exponer puerto para entrar desde PgAdmin/local:
+    # ports:
+    #   - "5433:5432"
 
   # --- 5. MICROSERVICIOS ---
   ms-res:
     build: ./ms-res
     container_name: ms-res
     depends_on:
-      - config-server
-      - eureka-server
-      - postgres_res
+      config-server:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      postgres_cursos:
+        condition: service_started
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://user:password123@config-server:8888/
     networks:
       - learning-net
+
+
 
   m-cursos:
     build: ./m-cursos
@@ -102,14 +109,13 @@ services:
       - "8090:8090"
     depends_on:
       config-server:
-        condition: service_started # <--- LA CLAVE: Espera a que esté VERDE
+        condition: service_started
       eureka-server:
         condition: service_started
       keycloak:
-        condition: service_started # Keycloak no necesita healthy estricto si usamos config manual
+        condition: service_started
     environment:
       - SPRING_APPLICATION_NAME=gateway
-      # Credenciales para entrar al Config Server
       - SPRING_CLOUD_CONFIG_USERNAME=user
       - SPRING_CLOUD_CONFIG_PASSWORD=password123
       - SPRING_PROFILES_ACTIVE=docker
@@ -118,7 +124,6 @@ services:
       - learning-net
 
 volumes:
-  pgdata_res:
   postgres_data_cursos:
   keycloak_data:
 

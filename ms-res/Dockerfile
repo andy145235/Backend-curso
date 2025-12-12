@@ -1,39 +1,23 @@
-# --- Etapa 1: "Builder" ---
-# (Esta etapa solo extrae el .jar que ya construiste)
-FROM eclipse-temurin:21-jre-alpine AS builder
+# ========== FASE DE CONSTRUCCIÓN ==========
+FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /workspace
 
-# --- ¡LÍNEA IMPORTANTE! ---
-# ¡REVISA ESTE NOMBRE!
-# Ejecuta "ls -l ms-res/target/" y pon el nombre correcto aquí.
-ARG JAR_FILE=target/ms-res-0.0.2-SNAPSHOT.jar
+# Copiar archivos del proyecto
+COPY . .
 
-# Copia solo ese .jar y lo renombra a "app.jar"
-COPY ${JAR_FILE} app.jar
+# Ejecutar Maven dentro del contenedor para generar el .jar
+RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
 
-# --- Etapa 2: "Final" ---
-# (Esta es la imagen final que correrá)
-FROM eclipse-temurin:21-jre-alpine
-
-# Instalar 'curl' para el healthcheck de tu docker-compose.yml
-RUN apk add --no-cache curl
-
-WORKDIR /app
-
-# Copia el "app.jar" desde la etapa anterior
-COPY --from=builder /workspace/app.jar .
+# ========== FASE FINAL ==========
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /application
 
 # Crear usuario seguro
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup --system spring && adduser --system --ingroup spring spring
 USER spring:spring
 
-# Expone el puerto interno (8080 para ms-res)
-EXPOSE 8080
+# Copiar el .jar generado desde la fase anterior
+COPY --from=builder /workspace/target/*.jar app.jar
 
-# Comando para correr la aplicación
+EXPOSE 8000
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
-
-
-

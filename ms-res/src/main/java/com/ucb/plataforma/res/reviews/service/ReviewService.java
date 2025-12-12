@@ -1,11 +1,14 @@
 package com.ucb.plataforma.res.reviews.service;
 
-import com.ucb.plataforma.res.reviews.dto.*;
+import com.ucb.plataforma.res.reviews.dto.ReviewCreateRequest;
+import com.ucb.plataforma.res.reviews.dto.ReviewResponse;
+import com.ucb.plataforma.res.reviews.dto.ReviewUpdateRequest;
 import com.ucb.plataforma.res.reviews.entity.Review;
 import com.ucb.plataforma.res.reviews.exception.NotFoundException;
 import com.ucb.plataforma.res.reviews.mapper.ReviewMapper;
 import com.ucb.plataforma.res.reviews.repository.ReviewRepository;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +20,8 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
 
-    public ReviewService(ReviewRepository reviewRepository, ReviewMapper reviewMapper) {
+    public ReviewService(ReviewRepository reviewRepository,
+                         ReviewMapper reviewMapper) {
         this.reviewRepository = reviewRepository;
         this.reviewMapper = reviewMapper;
     }
@@ -35,15 +39,25 @@ public class ReviewService {
     /**
      * Retorna todas las reseñas de forma paginada.
      */
-    public Page<ReviewResponse> findAll(Pageable pageable) {
+    public Page<ReviewResponse> findAllPaged(Pageable pageable) {
         return reviewRepository.findAll(pageable)
                 .map(reviewMapper::toResponse);
     }
 
     /**
+     * Retorna reseñas de un curso específico.
+     */
+    public List<ReviewResponse> findByCourseId(Long courseId) {
+        return reviewRepository.findByCourseId(courseId)
+                .stream()
+                .map(reviewMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Retorna reseñas con calificación mínima.
      */
-    public List<ReviewResponse> findHighRated(int minRating) {
+    public List<ReviewResponse> findByMinRated(int minRating) {
         return reviewRepository.findByRatingGreaterThanEqual(minRating)
                 .stream()
                 .map(reviewMapper::toResponse)

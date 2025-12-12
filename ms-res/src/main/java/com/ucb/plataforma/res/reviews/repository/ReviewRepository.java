@@ -12,16 +12,16 @@ import java.util.List;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    // 🔹 Reseñas por curso (para US-019)
     List<Review> findByCourseId(Long courseId);
-    List<Review> findByUserId(Long userId);
 
-    // Derived query
+    // 🔹 Filtrar por rating mínimo
     List<Review> findByRatingGreaterThanEqual(int minRating);
 
-    // JPQL query
+    // 🔹 Buscar por palabra en el comentario
     @Query("SELECT r FROM Review r WHERE LOWER(r.comment) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Review> searchByCommentContaining(@Param("keyword") String keyword);
 
-    // Pageable support
+    // 🔹 Soporte paginado (en realidad JpaRepository ya lo trae, pero no molesta)
     Page<Review> findAll(Pageable pageable);
 }

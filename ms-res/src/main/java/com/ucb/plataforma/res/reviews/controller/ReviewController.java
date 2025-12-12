@@ -13,6 +13,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +35,13 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @Operation(summary = "Get all reviews", description = "Returns all reviews from the database")
+    // ================== LECTURA GENERAL ================== //
+
+    @Operation(summary = "Get all reviews",
+            description = "Returns all reviews from the database")
     @ApiResponse(responseCode = "200", description = "OK",
-        content = @Content(mediaType = "application/json",
-            array = @ArraySchema(schema = @Schema(implementation = ReviewResponse.class))))
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = ReviewResponse.class))))
     @GetMapping(produces = "application/json")
     public List<ReviewResponse> getAll() {
         LOGGER.info("Listing all reviews");
@@ -44,15 +50,15 @@ public class ReviewController {
 
     @Operation(summary = "Get review by ID", description = "Returns one review by ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "OK",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ReviewResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid ID",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(responseCode = "404", description = "Not Found",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ReviewResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Not Found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping(value = "/{id}", produces = "application/json")
     public ReviewResponse getById(
@@ -62,33 +68,52 @@ public class ReviewController {
         return reviewService.findById(id);
     }
 
-    @Operation(summary = "Create review", description = "Creates and returns the new review")
+    // ================== POR CURSO (US-019) ================== //
+
+    @Operation(summary = "Get reviews by courseId",
+            description = "Returns all reviews for a given course")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = ReviewResponse.class))))
+    @GetMapping(params = "courseId", produces = "application/json")
+    public List<ReviewResponse> getByCourseId(
+            @Parameter(description = "Course ID", example = "101", required = true)
+            @RequestParam Long courseId) {
+
+        LOGGER.info("Listing reviews for courseId={}", courseId);
+        return reviewService.findByCourseId(courseId);
+    }
+
+    // ================== CREAR / ACTUALIZAR / BORRAR ================== //
+
+    @Operation(summary = "Create review",
+            description = "Creates and returns the new review")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Created",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ReviewResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid data",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "200", description = "Created",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ReviewResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid data",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PostMapping(consumes = "application/json", produces = "application/json")
-    public ReviewResponse create(
-            @Valid @RequestBody ReviewCreateRequest request) {
+    public ReviewResponse create(@Valid @RequestBody ReviewCreateRequest request) {
         LOGGER.info("Creating review for courseId={}", request.getCourseId());
         return reviewService.create(request);
     }
 
-    @Operation(summary = "Update review", description = "Updates and returns the review by ID")
+    @Operation(summary = "Update review",
+            description = "Updates and returns the review by ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Updated",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ReviewResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid data",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(responseCode = "404", description = "Not Found",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "200", description = "Updated",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ReviewResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid data",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Not Found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PutMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
     public ReviewResponse update(
@@ -101,10 +126,10 @@ public class ReviewController {
 
     @Operation(summary = "Delete review", description = "Deletes a review by ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Deleted"),
-        @ApiResponse(responseCode = "404", description = "Not Found",
-            content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "200", description = "Deleted"),
+            @ApiResponse(responseCode = "404", description = "Not Found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProblemDetail.class)))
     })
     @DeleteMapping("/{id}")
     public void delete(
@@ -112,5 +137,45 @@ public class ReviewController {
             @PathVariable @Min(1) Long id) {
         LOGGER.info("Deleting review id={}", id);
         reviewService.delete(id);
+    }
+
+    // ================== ENDPOINTS ADICIONALES ================== //
+
+    @Operation(summary = "Filter reviews by minimum rating",
+            description = "Returns all reviews with rating >= minRating")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = ReviewResponse.class))))
+    @GetMapping(value = "/filter", produces = "application/json")
+    public List<ReviewResponse> getReviewsByMinRating(
+            @Parameter(description = "Minimum rating (1-5)", required = true, example = "4")
+            @RequestParam int minRating) {
+        LOGGER.info("Filtering reviews with minRating={}", minRating);
+        return reviewService.findByMinRated(minRating);
+    }
+
+    @Operation(summary = "Search reviews by keyword",
+            description = "Searches reviews that contain the given keyword in their comment")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = ReviewResponse.class))))
+    @GetMapping(value = "/search", produces = "application/json")
+    public List<ReviewResponse> searchReviews(
+            @Parameter(description = "Keyword to search in comments", example = "excelente")
+            @RequestParam String keyword) {
+        LOGGER.info("Searching reviews with keyword='{}'", keyword);
+        return reviewService.searchByKeyword(keyword);
+    }
+
+    @Operation(summary = "Get all reviews paginated",
+            description = "Returns reviews with pagination support")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Page.class)))
+    @GetMapping(value = "/page", produces = "application/json")
+    public Page<ReviewResponse> getAllPaged(@ParameterObject Pageable pageable) {
+        LOGGER.info("Listing reviews with pagination, page={} size={}",
+                pageable.getPageNumber(), pageable.getPageSize());
+        return reviewService.findAllPaged(pageable);
     }
 }
